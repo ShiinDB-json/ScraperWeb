@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, Play, Clock, CheckCircle2, AlertTriangle, Layers, Plus, Trash2, ArrowRight, Loader2, Globe, Shield, Search } from 'lucide-react';
-import { ScrapeTestResponse } from '../types';
+import { ScrapeTestResponse, ScrapeEngine, PlaywrightBrowserName } from '../types';
 import { OutputJsonPreview } from './OutputJsonPreview';
 
 interface LiveScrapeRunnerProps {
@@ -18,6 +18,9 @@ export const LiveScrapeRunner: React.FC<LiveScrapeRunnerProps> = ({
   const [method, setMethod] = useState(initialMethod);
   const [timeoutMs, setTimeoutMs] = useState(10000);
   const [followRedirects, setFollowRedirects] = useState(true);
+  const [engine, setEngine] = useState<ScrapeEngine>('http');
+  const [playwrightBrowser, setPlaywrightBrowser] = useState<PlaywrightBrowserName>('chromium');
+  const [waitForSelector, setWaitForSelector] = useState('');
 
   // Headers list state
   const [headersList, setHeadersList] = useState<{ key: string; value: string }[]>(
@@ -75,6 +78,9 @@ export const LiveScrapeRunner: React.FC<LiveScrapeRunnerProps> = ({
           selectors: selectors.filter((s) => s.selector.trim()),
           timeoutMs,
           followRedirects,
+          engine,
+          waitForSelector: waitForSelector.trim() || undefined,
+          playwrightBrowser,
         }),
       });
 
@@ -153,6 +159,58 @@ export const LiveScrapeRunner: React.FC<LiveScrapeRunnerProps> = ({
             </div>
           </div>
 
+          {/* Engine Selector Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                Scrape Engine
+              </label>
+              <select
+                value={engine}
+                onChange={(e) => setEngine(e.target.value as ScrapeEngine)}
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-cyan-400 focus:border-cyan-500 transition-all"
+              >
+                <option value="http">HTTP (axios + cheerio) — tercepat</option>
+                <option value="native">Native (Node http/https + zlib) — tanpa dependency</option>
+                <option value="undici">Undici (fetch engine performa tinggi)</option>
+                <option value="puppeteer">Puppeteer (stealth headless Chrome)</option>
+                <option value="playwright">Playwright (headless browser)</option>
+              </select>
+            </div>
+
+            {engine === 'playwright' && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Playwright Browser
+                </label>
+                <select
+                  value={playwrightBrowser}
+                  onChange={(e) => setPlaywrightBrowser(e.target.value as PlaywrightBrowserName)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-300 focus:border-cyan-500 transition-all"
+                >
+                  <option value="chromium">Chromium</option>
+                  <option value="firefox">Firefox</option>
+                  <option value="webkit">WebKit</option>
+                </select>
+              </div>
+            )}
+
+            {(engine === 'puppeteer' || engine === 'playwright') && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Tunggu Selector (opsional)
+                </label>
+                <input
+                  type="text"
+                  value={waitForSelector}
+                  onChange={(e) => setWaitForSelector(e.target.value)}
+                  placeholder=".product-list"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-300 focus:border-cyan-500 transition-all"
+                />
+              </div>
+            )}
+          </div>
+
           {/* Config Settings Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
             <div>
@@ -174,6 +232,7 @@ export const LiveScrapeRunner: React.FC<LiveScrapeRunnerProps> = ({
                   checked={followRedirects}
                   onChange={(e) => setFollowRedirects(e.target.checked)}
                   className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+                  disabled={engine !== 'http'}
                 />
                 <span>Ikuti Redirect Otomatis (Max 5)</span>
               </label>
