@@ -49,11 +49,15 @@ export interface ScraperPreset {
   sampleCurl?: string;
 }
 
+export type ScrapeEngine = 'http' | 'native' | 'undici' | 'puppeteer' | 'playwright';
+export type PlaywrightBrowserName = 'chromium' | 'firefox' | 'webkit';
+
 export interface ScrapeTestResponse {
   success: boolean;
   statusCode?: number;
   statusText?: string;
   elapsedMs?: number;
+  engine?: ScrapeEngine;
   contentType?: string;
   contentLength?: number;
   headers?: Record<string, string>;
