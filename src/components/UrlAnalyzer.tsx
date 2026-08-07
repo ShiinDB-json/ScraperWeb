@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Search, Globe, Code, FileText, AlertCircle, Loader2, Sparkles, Terminal } from 'lucide-react';
-import { ScraperLibrary } from '../types';
 
 interface UrlAnalyzerProps {
   onAnalyze: (data: {
@@ -8,7 +7,6 @@ interface UrlAnalyzerProps {
     curlInput: string;
     rawContent: string;
     userPrompt: string;
-    preferredLibrary: ScraperLibrary;
   }) => void;
   isLoading: boolean;
   onOpenCurlModal: () => void;
@@ -23,7 +21,6 @@ export const UrlAnalyzer: React.FC<UrlAnalyzerProps> = ({
   const [url, setUrl] = useState('');
   const [curlInput, setCurlInput] = useState('');
   const [userPrompt, setUserPrompt] = useState('');
-  const [preferredLibrary, setPreferredLibrary] = useState<ScraperLibrary>('axios');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +29,6 @@ export const UrlAnalyzer: React.FC<UrlAnalyzerProps> = ({
       curlInput: inputType === 'curl' ? curlInput : '',
       rawContent: '',
       userPrompt,
-      preferredLibrary,
     });
   };
 
@@ -200,27 +196,6 @@ export const UrlAnalyzer: React.FC<UrlAnalyzerProps> = ({
               placeholder="Contoh: Ambil hanya item yang stoknya ada, tambahkan delay 2 detik tiap page"
               className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 placeholder-slate-600 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
             />
-          </div>
-
-          {/* Preferred Library */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Metode / Library Utama
-            </label>
-            <select
-              value={preferredLibrary}
-              onChange={(e) => setPreferredLibrary(e.target.value as ScraperLibrary)}
-              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-medium"
-            >
-              <option value="axios">Axios (Direct REST API / JSON)</option>
-              <option value="fetch">Native Fetch (Standard Node.js v18+)</option>
-              <option value="axios-cheerio">Axios + Cheerio (Static HTML Scraping)</option>
-              <option value="jsdom">JSDOM (Full Client-Side DOM & Dynamic Scripts)</option>
-              <option value="axios-cookiejar">Axios + Tough-Cookie (Session Jar & Auth Flow)</option>
-              <option value="cloudscraper">Cloudscraper (Automatic Cloudflare Challenge Bypass)</option>
-              <option value="puppeteer-stealth">Puppeteer Stealth (Headless Chrome - Bypass Turnstile/CF)</option>
-              <option value="playwright-stealth">Playwright Stealth (Playwright Chromium Anti-Detection)</option>
-            </select>
           </div>
         </div>
 
