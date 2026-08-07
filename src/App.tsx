@@ -14,7 +14,7 @@ import { CurlParserModal } from './components/CurlParserModal';
 import { PresetsTab } from './components/PresetsTab';
 import { SessionManager } from './components/SessionManager';
 import { RailwayGuide } from './components/RailwayGuide';
-import { AnalysisResult, SavedSession, ScraperLibrary, ScraperPreset } from './types';
+import { AnalysisResult, SavedSession, ScraperPreset } from './types';
 import { Terminal, Sparkles, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-react';
 
 export default function App() {
@@ -84,7 +84,6 @@ export default function App() {
     curlInput: string;
     rawContent: string;
     userPrompt: string;
-    preferredLibrary: ScraperLibrary;
   }) => {
     setIsLoading(true);
     setError(null);
@@ -190,7 +189,6 @@ export default function App() {
       curlInput: preset.sampleCurl || '',
       rawContent: '',
       userPrompt: `Preset Scraper: ${preset.title}. ${preset.description}`,
-      preferredLibrary: preset.library,
     });
   };
 
@@ -203,7 +201,6 @@ export default function App() {
       curlInput: `curl "${data.url}" -X ${data.method}`,
       rawContent: '',
       userPrompt: `Analyzed from cURL command with ${Object.keys(data.headers).length} custom headers`,
-      preferredLibrary: 'axios',
     });
   };
 
