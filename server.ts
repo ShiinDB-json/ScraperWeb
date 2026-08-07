@@ -582,7 +582,7 @@ app.post("/api/scrape-test", async (req, res) => {
 // Route: AI Website Analysis & Code Generation
 app.post("/api/analyze", async (req, res) => {
   try {
-    const { url, rawContent, curlInput, userPrompt = "", strictNoComments = true, preferredLibrary = "axios" } = req.body;
+    const { url, rawContent, curlInput, userPrompt = "", strictNoComments = true } = req.body;
 
     if (!url && !rawContent && !curlInput && !userPrompt) {
       return res.status(400).json({ error: "Sediakan URL, cURL, konten, atau deskripsi website." });
@@ -619,15 +619,20 @@ app.post("/api/analyze", async (req, res) => {
     const systemPrompt = `Kamu adalah Web Scraping Engineer profesional Node.js.
 Tugas utama: Analisis website / URL / cURL yang diberikan, identifikasi endpoint API atau struktur HTML-nya, lalu hasilkan scraper Node.js yang modular, tangguh, dan memproduksi JSON konsisten.
 
-PILIHAN LIBRARY & TEKNIK:
-1. 'axios' / 'cheerio': Untuk request HTTP direct REST/JSON & parsing HTML cepat.
-2. 'jsdom': Jika website butuh manipulasi Client-Side DOM & simulasi script sederhana.
-3. 'axios-cookiejar' (axios-cookiejar-support + tough-cookie): Jika butuh manajemen session cookie bertingkat & redirect auth.
-4. 'cloudscraper': Jika target terproteksi Cloudflare Challenge / V2 WAF.
-5. 'puppeteer-stealth' (puppeteer-extra + puppeteer-extra-plugin-stealth, sudah terinstall di server ini): Jika website sangat ketat, butuh rendering headless browser penuh, melewati Cloudflare Turnstile, hCaptcha, atau Akamai.
-6. 'playwright-stealth' (playwright, chromium/firefox/webkit, sudah terinstall di server ini): Untuk headless browser modern anti-detection, cross-browser testing.
-7. 'got-scraping': HTTP client khusus scraping dengan header & TLS fingerprint browser-like, cocok untuk anti-bot ringan tanpa perlu headless browser penuh.
-8. 'robots-parser': Untuk mengecek dan menghormati aturan robots.txt sebelum melakukan crawling massal.
+PILIH SENDIRI library & teknik yang PALING TEPAT untuk target ini berdasarkan analisismu (proteksi anti-bot, apakah butuh render JS, dsb) — jangan tanya user, tentukan sendiri. Opsi yang tersedia dan SUDAH TERINSTALL di server ini:
+1. 'axios' / 'cheerio': Untuk request HTTP direct REST/JSON & parsing HTML cepat. Default terbaik untuk situs statis / API biasa.
+2. 'native-http' (modul bawaan Node http/https + zlib + iconv-lite, tanpa dependency eksternal): Cocok jika ingin kontrol penuh request tanpa library HTTP client.
+3. 'undici': HTTP client performa tinggi (engine yang sama dengan fetch bawaan Node), cocok untuk scraping volume besar / concurrent request banyak.
+4. 'jsdom': Jika website butuh manipulasi Client-Side DOM & simulasi script sederhana.
+5. 'axios-cookiejar' (axios-cookiejar-support + tough-cookie): Jika butuh manajemen session cookie bertingkat & redirect auth.
+6. 'cloudscraper': Jika target terproteksi Cloudflare Challenge / V2 WAF.
+7. 'puppeteer-stealth' (puppeteer-extra + puppeteer-extra-plugin-stealth): Jika website sangat ketat, butuh rendering headless browser penuh, melewati Cloudflare Turnstile, hCaptcha, atau Akamai.
+8. 'playwright-stealth' (playwright, chromium/firefox/webkit): Untuk headless browser modern anti-detection, cross-browser testing.
+9. 'got-scraping': HTTP client khusus scraping dengan header & TLS fingerprint browser-like, cocok untuk anti-bot ringan tanpa perlu headless browser penuh.
+10. 'fast-xml-parser': Jika target berupa RSS/Atom feed atau XML sitemap.
+11. 'robots-parser': Untuk mengecek dan menghormati aturan robots.txt sebelum melakukan crawling massal.
+
+Pertimbangkan trade-off: library HTTP ringan (axios/native-http/undici/got-scraping) jauh lebih cepat & murah resource dibanding headless browser (puppeteer/playwright), jadi hanya pakai headless browser kalau memang website butuh render JS atau terproteksi anti-bot berat. Jelaskan alasan pemilihanmu di libraryChoices.
 
 ATURAN KERAS KODE SCRAPER:
 1. Bahasa: Node.js (JavaScript ES Module or CommonJS async/await).
@@ -655,8 +660,8 @@ Kembalikan respon JSON persis dengan struktur berikut:
   },
   "libraryChoices": [
     {
-      "name": "${preferredLibrary}",
-      "reason": "Alasan pemilihan library ini"
+      "name": "Library/teknik yang kamu pilih sendiri berdasarkan analisis di atas",
+      "reason": "Alasan pemilihan library ini dibanding opsi lain"
     }
   ],
   "sourceCode": "Source code Node.js lengkap siap jalan (tanpa komentar jika strictNoComments=true)",
@@ -677,7 +682,6 @@ cURL Input: ${curlInput || "N/A"}
 Catatan User / Prompt: ${userPrompt || "N/A"}
 Sample Konten / HTTP Status ${statusCode}: ${pageSample || rawContent || "N/A"}
 Header yang terdeteksi: ${JSON.stringify(detectedHeaders)}
-Library Pilihan: ${preferredLibrary}
 Strict No Comments: ${strictNoComments}`;
 
     const geminiRes = await ai.models.generateContent({
@@ -701,7 +705,7 @@ Strict No Comments: ${strictNoComments}`;
           method: "GET",
           recommendedHeaders: { "User-Agent": DEFAULT_USER_AGENT },
         },
-        libraryChoices: [{ name: preferredLibrary, reason: "Pilihan utama HTTP client Node.js" }],
+        libraryChoices: [{ name: "axios", reason: "Fallback default HTTP client Node.js" }],
         sourceCode: `import axios from 'axios';\n\nasync function run() {\n  // Code generated\n}\nrun();`,
         caraMenjalankan: "node scraper.js",
         contohOutputJson: [],
