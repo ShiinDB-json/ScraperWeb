@@ -5,7 +5,7 @@ import https from "https";
 import zlib from "zlib";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { GoogleGenAI, Type } from "@google/genai";
+import { gemmy } from "./gemmy";
 import { createServer as createViteServer } from "vite";
 import { chromium, firefox, webkit } from "playwright";
 import puppeteerExtra from "puppeteer-extra";
@@ -108,16 +108,6 @@ app.delete("/api/sessions", (req, res) => {
     }
   }
   res.json({ success: true });
-});
-
-// Initialize Gemini Client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
 });
 
 // Default Browser Headers
@@ -684,16 +674,15 @@ Sample Konten / HTTP Status ${statusCode}: ${pageSample || rawContent || "N/A"}
 Header yang terdeteksi: ${JSON.stringify(detectedHeaders)}
 Strict No Comments: ${strictNoComments}`;
 
-    const geminiRes = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: userPromptContent,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
+    const geminiRes = await gemmy.chat(userPromptContent, [], null, "gemini-3.6-flash", {
+      systemInstruction: {
+        role: "user",
+        parts: [{ text: systemPrompt }]
       },
+      responseMimeType: "application/json",
     });
 
-    const text = geminiRes.text || "{}";
+    const text = geminiRes.reply || "{}";
     let parsedResult;
     try {
       parsedResult = JSON.parse(text);
@@ -782,16 +771,15 @@ ${refactorPrompt}
 
 Aturan Strict No Comments: ${strictNoComments}`;
 
-    const geminiRes = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: userPromptContent,
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
+    const geminiRes = await gemmy.chat(userPromptContent, [], null, "gemini-3.6-flash", {
+      systemInstruction: {
+        role: "user",
+        parts: [{ text: systemPrompt }]
       },
+      responseMimeType: "application/json",
     });
 
-    const text = geminiRes.text || "{}";
+    const text = geminiRes.reply || "{}";
     let parsedResult;
     try {
       parsedResult = JSON.parse(text);
